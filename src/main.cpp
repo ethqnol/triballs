@@ -7,7 +7,7 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
-#include <math>
+#include <math.h>
 
 #define DRIVE_MAX_SPEED 100;
 #define TURN_VELOCITY_SPEED 100;
