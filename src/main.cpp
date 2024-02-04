@@ -7,14 +7,15 @@
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
-
+#include <math>
 
 #define DRIVE_MAX_SPEED 100;
 #define TURN_VELOCITY_SPEED 100;
 
-const double wheel_diameter = 4.0;
-const double encoder_ticks_p_rev = 900.0;
-
+const double WHEEL_DIAMETER = 4.0;
+const double ENCODER_TICKS_P_REV = 900.0;
+const double CIRCUMFERENCE = WHEEL_DIAMETER * 3.1415926535;
+const double TRACK_WIDTH = 8.0;
 
 using namespace vex;
 vex::brain Brain;
@@ -29,23 +30,63 @@ vex::motor motor_primer(vex::PORT13);
 
 vex::motor_group left_wheels(motor_lwheel);
 vex::motor_group right_wheels(motor_rwheel);
+
 //GET ACTUAL MEASUREMENTS FOR WHEELBASE (Distance from centerpoint to front axel) AND TRACKWIDTH (Distance between wheels)
-vex::drivetrain w_robot(left_wheels, right_wheels, 4.0, 5.0, 5.0, vex::distanceUnits::in);
+vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 5.0, vex::distanceUnits::in);
 
-//work in progress... do we even need this??????
-// bool bump_detection(){
-//     int motor_lwheel_pos = motor_lwheel.position(vex::rotationUnits::deg);
-//     int motor_rwheel_pos = motor_rwheel.position(vex::rotationUnits::deg);
 
-//     if(motor_lwheel_pos)
-// }
+double previous_left_encoder = 0.0; //previous encoder for left motor group
+double previous_right_encoder = 0.0; //previous encoder for right motor group
+double x = 0.0; // current x-coordinate
+double y = 0.0; // current y-coordinate
+double theta = 0.0; //angle in degrees
+
+
+void update_pos(){
+    double left_encoder = motor_lwheel.position(vex::rotationUnits::deg);
+    double right_encoder = motor_rwheel.position(vex::rotationUnits::deg);
+
+    double delta_left = left_encoder - previous_left_encoder;
+    double delta_right = right_encoder - previous_right_encoder;
+
+    // Convert encoder ticks to inches
+    delta_left = (delta_left / ENCODER_TICKS_P_REV) * (CIRCUMFERENCE);
+    delta_right = (delta_right / ENCODER_TICKS_P_REV) * (CIRCUMFERENCE);
+
+    // Update the previous encoder values
+    previous_left_encoder = left_encoder;
+    previous_right_encoder = right_encoder;
+
+    // Compute robot displacement
+    double delta_s = (delta_left + delta_right) / 2.0;
+    double delta_theta = (delta_right - delta_left) / TRACK_WIDTH;
+
+    // Update x, y, and theta
+    x = x + delta_s * cos(theta + delta_theta / 2.0);
+    y = y + delta_s * sin(theta + delta_theta / 2.0);
+    theta = theta + delta_theta;
+
+    //if theta >= 360 or theta < 0, then update oreintation to theta mod 360
+    theta = fmod(theta, 360.0);
+}
 
 
 void return_to_sender(){
+    update_pos();
 
-    //emergency brake
-    if(ctrler.ButtonX.pressing()){
-        return;
+    double rotation_amount = theta > 180 ? (360.0 - theta) : -1.0 * theta;
+    double travel_dist = sqrt(pow(x, 2) + pow(y, 2));
+
+    w_robot.turnFor(rotation_amount, vex::rotationUnits::deg, false);
+    w_robot.driveFor(travel_dist, vex::distanceUnits::in, false);
+
+    //saftey condition
+    while (true) {
+        if (ctrler.ButtonX.pressing()) {
+            w_robot.stop();
+            return;  // Exit for saftey
+        }
+        this_thread::sleep_for(10);
     }
 }
 
