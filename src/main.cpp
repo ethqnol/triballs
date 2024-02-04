@@ -33,12 +33,19 @@ int main() {
         int left_wheel = ctrler.Axis3.position() * 5;
         int right_wheel = ctrler.Axis2.position() * 5;
 
+        if(ctrler.ButtonA.pressing()) {
+            //calibrate force as necessary
+            motor_primer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
+        } else {
+            motor_primer.setStopping(vex::brakeType::coast);
+        }
+
 
         // arms
         if (ctrler.ButtonL1.pressing()) {
             motor_larm.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
 
-        } else if (ctrler.ButtonL1.pressing()) {
+        } else if (ctrler.ButtonL2.pressing()) {
             motor_larm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
 
         } else {
@@ -48,7 +55,7 @@ int main() {
         if (ctrler.ButtonR1.pressing()) {
             motor_rarm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
 
-        } else if (ctrler.ButtonL2.pressing()) {
+        } else if (ctrler.ButtonR2.pressing()) {
             motor_larm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
 
         } else {
@@ -56,9 +63,10 @@ int main() {
         }
         //end arms
 
+
+        //drive
         motor_lwheel.spin(vex::directionType::fwd, left_wheel, vex::velocityUnits::pct);
         motor_rwheel.spin(vex::directionType::fwd, right_wheel, vex::velocityUnits::pct);
-        //motor.setStopping(vex::brakeType::coast); freespin
         this_thread::sleep_for(10);
     }
 }
