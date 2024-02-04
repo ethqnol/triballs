@@ -8,6 +8,7 @@
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
 
+
 #define DRIVE_MAX_SPEED 100;
 #define TURN_VELOCITY_SPEED 100;
 
@@ -24,15 +25,37 @@ vex::motor motor_rarm(vex::PORT2);
 vex::motor motor_primer(vex::PORT13);
 
 
+//work in progress... do we even need this??????
+// bool bump_detection(){
+//     int motor_lwheel_pos = motor_lwheel.position(vex::rotationUnits::deg);
+//     int motor_rwheel_pos = motor_rwheel.position(vex::rotationUnits::deg);
+
+//     if(motor_lwheel_pos)
+// }
+
+
+void autonomous() {
+    while(true){
+        //terminate autonomous if ButtonX is pressed
+        if(ctrler.ButtonX.pressing()){
+            return;
+        }
+
+        this_thread::sleep_for(10);
+    }
+
+}
 
 int main() {
 
-    Brain.Screen.printAt( 10, 50, ";salfjas;ldfkjas;dlfkjas;dlfkjas;ldfj" );
-   
+    Brain.Screen.printAt( 10, 50, ";salfjas;ldfkjas;dlfkjas;dlfkjas;ldfjitsworkingwthasdfasdf-879809187()*&8567_*(7978056)" );
+
     while(true) {
         int left_wheel = ctrler.Axis3.position() * 5;
         int right_wheel = ctrler.Axis2.position() * 5;
 
+
+        //Prime the arm for throwing triballs
         if(ctrler.ButtonA.pressing()) {
             //calibrate force as necessary
             motor_primer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
