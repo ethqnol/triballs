@@ -42,9 +42,11 @@ vex::drivetrain w_robot(left_wheels, right_wheels, 4.0, 5.0, 5.0, vex::distanceU
 
 
 void return_to_sender(){
-        if(ctrler.ButtonX.pressing()){
-            return;
-        }
+
+    //emergency brake
+    if(ctrler.ButtonX.pressing()){
+        return;
+    }
 }
 
 void autonomous() {
@@ -61,9 +63,9 @@ void autonomous() {
 }
 
 void opcontrol(){
- while(true) {
-        int left_wheel = ctrler.Axis3.position() * 5;
-        int right_wheel = ctrler.Axis2.position() * 5;
+    while(true) {
+        int left_wheel_spin = ctrler.Axis3.position() * 5;
+        int right_wheel_spin = ctrler.Axis2.position() * 5;
 
 
         //Prime the arm for throwing triballs
@@ -98,8 +100,8 @@ void opcontrol(){
 
 
         //drive
-        left_wheels.spin(vex::directionType::fwd, left_wheel, vex::velocityUnits::pct);
-        right_wheels.spin(vex::directionType::fwd, right_wheel, vex::velocityUnits::pct);
+        left_wheels.spin(vex::directionType::fwd, left_wheel_spin, vex::velocityUnits::pct);
+        right_wheels.spin(vex::directionType::fwd, right_wheel_spin, vex::velocityUnits::pct);
         this_thread::sleep_for(10);
     }
 }
