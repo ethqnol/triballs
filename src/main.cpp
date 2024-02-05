@@ -12,14 +12,14 @@
 
 
 //Macros & constants
-#define DRIVE_MAX_SPEED 100;
-#define DRIVE_3QUARTER_SPEED 75;
-#define DRiVE_HALF_SPEED 50;
-#define DRIVE_QUARTER_SPEED 25;
-const double WHEEL_DIAMETER = 4.0;
-const double ENCODER_TICKS_P_REV = 900.0;
-const double CIRCUMFERENCE = WHEEL_DIAMETER * 3.1415926535;
-const double TRACK_WIDTH = 8.0;
+#define DRIVE_MAX_SPEED 100
+#define DRIVE_3QUARTER_SPEED 75
+#define DRiVE_HALF_SPEED 50
+#define DRIVE_QUARTER_SPEED 20
+#define WHEEL_DIAMETER 4.0
+#define ENCODER_TICKS_P_REV 900.0
+#define CIRCUMFERENCE (WHEEL_DIAMETER * 3.1415926535)
+#define TRACK_WIDTH 8.0
 
 
 using namespace vex;
