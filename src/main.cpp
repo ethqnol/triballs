@@ -9,15 +9,30 @@
 #include "vex.h"
 #include <math.h>
 
-#define DRIVE_MAX_SPEED 100;
-#define TURN_VELOCITY_SPEED 100;
 
+
+//Macros & constants
+#define DRIVE_MAX_SPEED 100;
+#define DRIVE_3QUARTER_SPEED 75;
+#define DRiVE_HALF_SPEED 50;
+#define DRIVE_QUARTER_SPEED 25;
 const double WHEEL_DIAMETER = 4.0;
 const double ENCODER_TICKS_P_REV = 900.0;
 const double CIRCUMFERENCE = WHEEL_DIAMETER * 3.1415926535;
 const double TRACK_WIDTH = 8.0;
 
+
 using namespace vex;
+
+//Waypoint structure
+struct Waypoint {
+    double x;
+    double y;
+};
+
+Waypoint waypoints[4];
+int idx = 0;
+//initialize vex components
 vex::brain Brain;
 vex::competition Comp;
 vex::controller ctrler = vex::controller();
@@ -26,15 +41,17 @@ vex::motor motor_lwheel(vex::PORT11, ratio18_1, false);
 vex::motor motor_rwheel(vex::PORT1, ratio18_1, true);
 vex::motor motor_larm(vex::PORT12);
 vex::motor motor_rarm(vex::PORT2);
-vex::motor motor_primer(vex::PORT13);
+vex::motor motor_lprimer(vex::PORT13);
+vex::motor motor_rprimer(vex::PORT3);
 
+//motor_group and drivetrain creation
 vex::motor_group left_wheels(motor_lwheel);
 vex::motor_group right_wheels(motor_rwheel);
 
 //GET ACTUAL MEASUREMENTS FOR WHEELBASE (Distance from centerpoint to front axel) AND TRACKWIDTH (Distance between wheels)
 vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 5.0, vex::distanceUnits::in);
 
-
+//dead reckoning
 double previous_left_encoder = 0.0; //previous encoder for left motor group
 double previous_right_encoder = 0.0; //previous encoder for right motor group
 double x = 0.0; // current x-coordinate
@@ -71,6 +88,10 @@ void update_pos(){
 }
 
 
+void goto_waypoint(int loc){
+
+}
+
 void return_to_sender(){
     update_pos();
 
@@ -94,8 +115,10 @@ void autonomous() {
     w_robot.driveFor(60.0, vex::distanceUnits::in);
     w_robot.turnFor(90.0, vex::rotationUnits::deg);
 
-    motor_primer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    motor_primer.setStopping(vex::brakeType::coast);
+    motor_lprimer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_rprimer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_lprimer.setStopping(vex::brakeType::coast);
+    motor_rprimer.setStopping(vex::brakeType::coast);
 
     while(true){
         this_thread::sleep_for(10);
@@ -112,10 +135,26 @@ void opcontrol(){
         //Prime the arm for throwing triballs
         if(ctrler.ButtonA.pressing()) {
             //calibrate force as necessary
-            motor_primer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
+            motor_lprimer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
+            motor_rprimer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
         } else {
-            motor_primer.setStopping(vex::brakeType::coast);
+            motor_lprimer.setStopping(vex::brakeType::coast);
+            motor_rprimer.setStopping(vex::brakeType::coast);
         }
+
+
+
+        if(ctrler.ButtonY.pressing()){
+            return_to_sender();
+        }
+
+        if(ctrler.ButtonB.pressing()){
+            Waypoint temp = { x, y };
+            waypoints[idx] = temp;
+            idx++;
+        }
+
+        
 
         // arms
         if (ctrler.ButtonL1.pressing()) {
