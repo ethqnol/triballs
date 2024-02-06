@@ -19,7 +19,7 @@
 #define WHEEL_DIAMETER 4.0
 #define ENCODER_TICKS_P_REV 900.0
 #define CIRCUMFERENCE (WHEEL_DIAMETER * 3.1415926535)
-#define TRACK_WIDTH 8.0
+#define TRACK_WIDTH 9.0
 
 
 using namespace vex;
@@ -41,15 +41,15 @@ vex::motor motor_lwheel(vex::PORT11, ratio18_1, false);
 vex::motor motor_rwheel(vex::PORT1, ratio18_1, true);
 vex::motor motor_larm(vex::PORT12);
 vex::motor motor_rarm(vex::PORT2);
-vex::motor motor_lprimer(vex::PORT13);
-vex::motor motor_rprimer(vex::PORT3);
+vex::motor motor_primer(vex::PORT13);
+
 
 //motor_group and drivetrain creation
 vex::motor_group left_wheels(motor_lwheel);
 vex::motor_group right_wheels(motor_rwheel);
 
 //GET ACTUAL MEASUREMENTS FOR WHEELBASE (Distance from centerpoint to front axel) AND TRACKWIDTH (Distance between wheels)
-vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 5.0, vex::distanceUnits::in);
+vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 9.5, vex::distanceUnits::in);
 
 //dead reckoning
 double previous_left_encoder = 0.0; //previous encoder for left motor group
@@ -111,14 +111,21 @@ void return_to_sender(){
     }
 }
 
+void set_waypoint(){
+    Waypoint temp = { x, y };
+    waypoints[idx] = temp;
+    idx++;
+}
+
+
+
 void autonomous() {
     w_robot.driveFor(60.0, vex::distanceUnits::in);
     w_robot.turnFor(90.0, vex::rotationUnits::deg);
 
-    motor_lprimer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    motor_rprimer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    motor_lprimer.setStopping(vex::brakeType::coast);
-    motor_rprimer.setStopping(vex::brakeType::coast);
+    motor_primer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_primer.setStopping(vex::brakeType::coast);
+
 
     while(true){
         this_thread::sleep_for(10);
@@ -135,26 +142,16 @@ void opcontrol(){
         //Prime the arm for throwing triballs
         if(ctrler.ButtonA.pressing()) {
             //calibrate force as necessary
-            motor_lprimer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
-            motor_rprimer.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
+            motor_primer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
         } else {
-            motor_lprimer.setStopping(vex::brakeType::coast);
-            motor_rprimer.setStopping(vex::brakeType::coast);
+            motor_primer.setStopping(vex::brakeType::coast);
         }
 
 
 
-        if(ctrler.ButtonY.pressing()){
-            return_to_sender();
-        }
+        ctrler.ButtonY.pressed(return_to_sender);
 
-        if(ctrler.ButtonB.pressing()){
-            Waypoint temp = { x, y };
-            waypoints[idx] = temp;
-            idx++;
-        }
-
-        
+        ctrler.ButtonB.pressed(set_waypoint);
 
         // arms
         if (ctrler.ButtonL1.pressing()) {
@@ -193,8 +190,6 @@ int main() {
     // use this for competition
     // Comp.autonomous(autonomous);
     // Comp.drivercontrol(opcontrol);
-
-
 
 
     //opcontrol testing
