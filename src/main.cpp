@@ -133,6 +133,13 @@ void autonomous() {
     }
 }
 
+
+void prime_launch(){
+     motor_primer.spinFor(vex::directionType::fwd, 2.0, vex::timeUnits::sec, 75, vex::velocityUnits::pct);
+     motor_primer.spinFor(vex::directionType::rev, 2.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+     motor_primer.stop();
+}
+
 void opcontrol(){
     while(true) {
         int left_wheel_spin = ctrler.Axis3.position() * 5;
@@ -140,12 +147,7 @@ void opcontrol(){
 
 
         //Prime the arm for throwing triballs
-        if(ctrler.ButtonA.pressing()) {
-            //calibrate force as necessary
-            motor_primer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-        } else {
-            motor_primer.setStopping(vex::brakeType::coast);
-        }
+        ctrler.ButtonA.pressed(prime_launch);
 
 
 
