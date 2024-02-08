@@ -39,7 +39,6 @@ vex::controller ctrler = vex::controller();
 
 vex::motor motor_lwheel(vex::PORT11, ratio18_1, false);
 vex::motor motor_rwheel(vex::PORT1, ratio18_1, true);
-vex::motor motor_larm(vex::PORT12);
 vex::motor motor_rarm(vex::PORT2);
 vex::motor motor_primer(vex::PORT13);
 
@@ -89,7 +88,23 @@ void update_pos(){
 
 
 void goto_waypoint(int loc){
+    update_pos();
+    Waypoint waypt = waypoints[loc];
 
+    double rotation_amount = theta > 180 ? (360.0 - theta) : -1.0 * theta;
+    double travel_dist = sqrt(pow((x - waypt.x), 2) + pow((y-waypt.y), 2));
+
+    w_robot.turnFor(rotation_amount, vex::rotationUnits::deg, false);
+    w_robot.driveFor(travel_dist, vex::distanceUnits::in, false);
+
+    //saftey condition
+    while (true) {
+        if (ctrler.ButtonX.pressing()) {
+            w_robot.stop();
+            return;  // Exit for saftey
+        }
+        this_thread::sleep_for(10);
+    }
 }
 
 void return_to_sender(){
@@ -135,9 +150,10 @@ void autonomous() {
 
 
 void prime_launch(){
-     motor_primer.spinFor(vex::directionType::fwd, 2.0, vex::timeUnits::sec, 75, vex::velocityUnits::pct);
-     motor_primer.spinFor(vex::directionType::rev, 2.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-     motor_primer.stop();
+     motor_primer.spinFor(vex::directionType::fwd, 2.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+     motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 0, vex::velocityUnits::pct);
+     motor_primer.setBrake(vex::brakeType::coast);
+
 }
 
 void opcontrol(){
@@ -156,21 +172,12 @@ void opcontrol(){
         ctrler.ButtonB.pressed(set_waypoint);
 
         // arms
-        if (ctrler.ButtonL1.pressing()) {
-            motor_larm.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
-
-        } else if (ctrler.ButtonL2.pressing()) {
-            motor_larm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
-
-        } else {
-            motor_larm.stop();
-        }
 
         if (ctrler.ButtonR1.pressing()) {
             motor_rarm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
 
         } else if (ctrler.ButtonR2.pressing()) {
-            motor_larm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
+            motor_rarm.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
 
         } else {
             motor_rarm.stop();
