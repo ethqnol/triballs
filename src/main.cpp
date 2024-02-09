@@ -41,11 +41,8 @@ vex::motor motor_lwheel(vex::PORT11, ratio18_1, false);
 vex::motor motor_rwheel(vex::PORT1, ratio18_1, true);
 vex::motor motor_rarm(vex::PORT2);
 
-vex::motor motor_lprimer(vex::PORT1);
-vex::motor motor_rprimer(vex::PORT3, false);
+vex::motor motor_primer(vex::PORT13);
 
-
-vex::motor_group motor_primer(motor_lprimer, motor_rprimer);
 
 //motor_group and drivetrain creation
 vex::motor_group left_wheels(motor_lwheel);
@@ -156,7 +153,7 @@ void autonomous() {
 
 
 void prime_launch(){
-    motor_primer.spinFor(vex::directionType::fwd, 1.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::fwd, 3.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
     motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
 }
 
