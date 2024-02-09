@@ -139,17 +139,19 @@ void set_waypoint(){
 
 
 void autonomous() {
-    // w_robot.driveFor(60.0, vex::distanceUnits::in);
-    // w_robot.turnFor(90.0, vex::rotationUnits::deg);
+    w_robot.driveFor(24.0, vex::distanceUnits::in);
+    w_robot.turnFor(90.0, vex::rotationUnits::deg);
+    w_robot.driveFor(18.0, vex::distanceUnits::in);
+    w_robot.turnFor(-30.0, vex::rotationUnits::deg);
+    motor_primer.spinFor(vex::directionType::fwd, 2.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    
 
-    // motor_primer.spinFor(vex::directionType::fwd, 5.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    // motor_primer.setStopping(vex::brakeType::coast);
 
-
-    // while(true){
-    //     this_thread::sleep_for(10);
-    //     Brain.Screen.printAt( 10, 50, "Communism is overrated" );
-    // }
+    while(true){
+        this_thread::sleep_for(10);
+        Brain.Screen.printAt( 10, 50, "Communism is overrated" );
+    }
 }
 
 
