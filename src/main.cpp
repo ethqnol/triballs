@@ -153,7 +153,7 @@ void autonomous() {
 
 
 void prime_launch(){
-    motor_primer.spinFor(vex::directionType::fwd, 3.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::fwd, 1.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
     motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
 }
 
