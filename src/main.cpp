@@ -51,88 +51,6 @@ vex::motor_group right_wheels(motor_rwheel);
 //GET ACTUAL MEASUREMENTS FOR WHEELBASE (Distance from centerpoint to front axel) AND TRACKWIDTH (Distance between wheels)
 vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 9.5, vex::distanceUnits::in);
 
-//dead reckoning
-double previous_left_encoder = 0.0; //previous encoder for left motor group
-double previous_right_encoder = 0.0; //previous encoder for right motor group
-double x = 0.0; // current x-coordinate
-double y = 0.0; // current y-coordinate
-double theta = 0.0; //angle in degrees
-
-
-void update_pos(){
-    double left_encoder = motor_lwheel.position(vex::rotationUnits::deg);
-    double right_encoder = motor_rwheel.position(vex::rotationUnits::deg);
-
-    double delta_left = left_encoder - previous_left_encoder;
-    double delta_right = right_encoder - previous_right_encoder;
-
-    // Convert encoder ticks to inches
-    delta_left = (delta_left / ENCODER_TICKS_P_REV) * (CIRCUMFERENCE);
-    delta_right = (delta_right / ENCODER_TICKS_P_REV) * (CIRCUMFERENCE);
-
-    // Update the previous encoder values
-    previous_left_encoder = left_encoder;
-    previous_right_encoder = right_encoder;
-
-    // Compute robot displacement
-    double delta_s = (delta_left + delta_right) / 2.0;
-    double delta_theta = (delta_right - delta_left) / TRACK_WIDTH;
-
-    // Update x, y, and theta
-    x = x + delta_s * cos(theta + delta_theta / 2.0);
-    y = y + delta_s * sin(theta + delta_theta / 2.0);
-    theta = theta + delta_theta;
-
-    //if theta >= 360 or theta < 0, then update oreintation to theta mod 360
-    theta = fmod(theta, 360.0);
-}
-
-
-void goto_waypoint(int loc){
-    update_pos();
-    Waypoint waypt = waypoints[loc];
-
-    double rotation_amount = theta > 180 ? (360.0 - theta) : -1.0 * theta;
-    double travel_dist = sqrt(pow((x - waypt.x), 2) + pow((y-waypt.y), 2));
-
-    w_robot.turnFor(rotation_amount, vex::rotationUnits::deg, false);
-    w_robot.driveFor(travel_dist, vex::distanceUnits::in, false);
-
-    //saftey condition
-    while (true) {
-        if (ctrler.ButtonX.pressing()) {
-            w_robot.stop();
-            return;  // Exit for saftey
-        }
-        this_thread::sleep_for(10);
-    }
-}
-
-void return_to_sender(){
-    update_pos();
-
-    double rotation_amount = theta > 180 ? (360.0 - theta) : -1.0 * theta;
-    double travel_dist = sqrt(pow(x, 2) + pow(y, 2));
-
-    w_robot.turnFor(rotation_amount, vex::rotationUnits::deg, false);
-    w_robot.driveFor(travel_dist, vex::distanceUnits::in, false);
-
-    //saftey condition
-    while (true) {
-        if (ctrler.ButtonX.pressing()) {
-            w_robot.stop();
-            return;  // Exit for saftey
-        }
-        this_thread::sleep_for(10);
-    }
-}
-
-void set_waypoint(){
-    Waypoint temp = { x, y };
-    waypoints[idx] = temp;
-    idx++;
-}
-
 
 
 void autonomous() {
@@ -164,13 +82,10 @@ void opcontrol(){
 
 
         //Prime the arm for throwing triballs
-        ctrler.ButtonA.pressed(prime_launch);
+        ctrler.ButtonL1.pressed(prime_launch);
 
 
-
-        ctrler.ButtonY.pressed(return_to_sender);
-
-        ctrler.ButtonB.pressed(set_waypoint);
+        ctrler.ButtonB.pressed(autonomous);
 
         // arms
 
@@ -193,6 +108,11 @@ void opcontrol(){
             right_wheels.setStopping(vex::brakeType::brake);
         }
 
+
+        if(ctrler.ButtonUp.pressing()){
+            left_wheels.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+            right_wheels.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+        }
         //drive
         left_wheels.spin(vex::directionType::fwd, left_wheel_spin, vex::velocityUnits::pct);
         right_wheels.spin(vex::directionType::fwd, right_wheel_spin, vex::velocityUnits::pct);
@@ -204,13 +124,13 @@ int main() {
 
     Brain.Screen.printAt( 10, 50, ";salfjas;ldfkjas;dlfkjas;dlfkjas;ldfjitsworkingwthasdfasdf-879809187()*&8567_*(7978056)" );
     
-    // use this for competition
-    // Comp.autonomous(autonomous);
-    // Comp.drivercontrol(opcontrol);
+
+    Comp.autonomous(autonomous);
+    Comp.drivercontrol(opcontrol);
 
 
-    //opcontrol testing
-    opcontrol();
+    // //opcontrol testing
+    // opcontrol();
     while(true){
         this_thread::sleep_for(10);
     }
