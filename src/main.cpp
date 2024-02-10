@@ -53,26 +53,34 @@ vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 
 
 
 
-void autonomous() {
-    w_robot.driveFor(24.0, vex::distanceUnits::in);
-    w_robot.turnFor(90.0, vex::rotationUnits::deg);
-    w_robot.driveFor(18.0, vex::distanceUnits::in);
-    w_robot.turnFor(-30.0, vex::rotationUnits::deg);
-    motor_primer.spinFor(vex::directionType::fwd, 2.0, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-    
-
-
-    while(true){
-        this_thread::sleep_for(10);
-        Brain.Screen.printAt( 10, 50, "Communism is overrated" );
+void auto_shoot() {
+    int x = 0;
+    while(x < 5){
+        
+        motor_primer.spinFor(vex::directionType::fwd, 0.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
+        motor_primer.spinFor(vex::directionType::rev, 0.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+        
+        if(ctrler.ButtonX.pressing()){
+            Brain.Screen.printAt( 10, 50, "terminated autonomous" );
+            return;
+        } else {
+            this_thread::sleep_for(2000);
+        }
+        x++;
     }
+
+    return;
+}
+
+void autonomous(){
+    motor_primer.spinFor(vex::directionType::fwd, 0.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::rev, 0.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
 }
 
 
 void prime_launch(){
-    motor_primer.spinFor(vex::directionType::fwd, 1.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
-    motor_primer.spinFor(vex::directionType::rev, 1.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::fwd, 0.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
+    motor_primer.spinFor(vex::directionType::rev, 0.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
 }
 
 void opcontrol(){
@@ -83,17 +91,15 @@ void opcontrol(){
 
         //Prime the arm for throwing triballs
         ctrler.ButtonL1.pressed(prime_launch);
-
-
-        ctrler.ButtonB.pressed(autonomous);
+        ctrler.ButtonB.pressed(auto_shoot);
 
         // arms
 
         if (ctrler.ButtonR1.pressing()) {
-            motor_rarm.spin(vex::directionType::fwd, 10, vex::velocityUnits::pct);
+            motor_rarm.spin(vex::directionType::fwd, 16, vex::velocityUnits::pct);
 
         } else if (ctrler.ButtonR2.pressing()) {
-            motor_rarm.spin(vex::directionType::rev, 10, vex::velocityUnits::pct);
+            motor_rarm.spin(vex::directionType::rev, 16, vex::velocityUnits::pct);
 
         } else {
             motor_rarm.stop();
