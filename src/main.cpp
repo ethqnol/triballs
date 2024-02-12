@@ -8,7 +8,8 @@
 /*----------------------------------------------------------------------------*/
 #include "vex.h"
 #include <math.h>
-
+#include "odom.h"
+#include "waypoint.h"
 
 
 //Macros & constants
@@ -20,6 +21,10 @@
 #define ENCODER_TICKS_P_REV 900.0
 #define CIRCUMFERENCE (WHEEL_DIAMETER * 3.1415926535)
 #define TRACK_WIDTH 9.0
+
+#define PI 3.1415926
+#define RAD_DEG PI/180
+#define DEG_RAD 180/PI
 
 
 using namespace vex;
@@ -40,7 +45,6 @@ vex::controller ctrler = vex::controller();
 vex::motor motor_lwheel(vex::PORT11, ratio18_1, false);
 vex::motor motor_rwheel(vex::PORT1, ratio18_1, true);
 vex::motor motor_rarm(vex::PORT2);
-
 vex::motor motor_primer(vex::PORT13);
 
 
@@ -53,24 +57,27 @@ vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 
 
 
 
-void auto_shoot() {
-    int x = 0;
-    while(x < 5){
-        
-        motor_primer.spinFor(vex::directionType::fwd, 0.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
-        motor_primer.spinFor(vex::directionType::rev, 0.5, vex::timeUnits::sec, 100, vex::velocityUnits::pct);
-        
-        if(ctrler.ButtonX.pressing()){
-            Brain.Screen.printAt( 10, 50, "terminated autonomous" );
-            return;
-        } else {
-            this_thread::sleep_for(2000);
-        }
-        x++;
-    }
 
-    return;
+//odom
+double l_encoder = 0;
+double r_encoder = 0;
+
+Waypoint current_pos = Waypoint();
+
+
+void update_position(){
+    double current_l_encoder = left_wheels.position(vex::rotationUnits::deg);
+    double current_r_encoder = left_wheels.position(vex::rotationUnits::deg);
+
+
+    double delta_left = current_l_encoder - l_encoder;
+    double delta_right = current_r_encoder - r_encoder;
+    double delta_s = 
+    l_encoder = current_l_encoder;
+    r_encoder = current_r_encoder;
 }
+
+
 
 void autonomous(){
     motor_primer.spinFor(vex::directionType::fwd, 0.5, vex::timeUnits::sec, 50, vex::velocityUnits::pct);
@@ -91,15 +98,14 @@ void opcontrol(){
 
         //Prime the arm for throwing triballs
         ctrler.ButtonL1.pressed(prime_launch);
-        ctrler.ButtonB.pressed(auto_shoot);
 
         // arms
 
         if (ctrler.ButtonR1.pressing()) {
-            motor_rarm.spin(vex::directionType::fwd, 16, vex::velocityUnits::pct);
+            motor_rarm.spin(vex::directionType::fwd, 32, vex::velocityUnits::pct);
 
         } else if (ctrler.ButtonR2.pressing()) {
-            motor_rarm.spin(vex::directionType::rev, 16, vex::velocityUnits::pct);
+            motor_rarm.spin(vex::directionType::rev, 32, vex::velocityUnits::pct);
 
         } else {
             motor_rarm.stop();
