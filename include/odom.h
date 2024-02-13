@@ -3,9 +3,8 @@
 #include "waypoint.h"
 
 
-void odom();
 void move_to(double x, double y);
-void turn_to();
+void turn_to(double degrees); //degs are field centric not robot centric
 void update_position();
 
 
