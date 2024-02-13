@@ -4,7 +4,7 @@
 
 
 void odom();
-void move_to();
+void move_to(double x, double y);
 void turn_to();
 void update_position();
 

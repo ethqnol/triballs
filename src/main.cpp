@@ -15,28 +15,22 @@
 //Macros & constants
 #define DRIVE_MAX_SPEED 100
 #define DRIVE_3QUARTER_SPEED 75
-#define DRiVE_HALF_SPEED 50
+#define DRIVE_HALF_SPEED 50
 #define DRIVE_QUARTER_SPEED 20
 #define WHEEL_DIAMETER 4.0
+#define WHEEL_RAD 2.0
 #define ENCODER_TICKS_P_REV 900.0
 #define CIRCUMFERENCE (WHEEL_DIAMETER * 3.1415926535)
 #define TRACK_WIDTH 9.0
 
 #define PI 3.1415926
-#define RAD_DEG PI/180
-#define DEG_RAD 180/PI
+#define DEG_RAD PI/180
+#define RAD_DEG 180/PI
 
 
 using namespace vex;
 
-//Waypoint structure
-struct Waypoint {
-    double x;
-    double y;
-};
 
-Waypoint waypoints[4];
-int idx = 0;
 //initialize vex components
 vex::brain Brain;
 vex::competition Comp;
@@ -62,21 +56,66 @@ vex::drivetrain w_robot(left_wheels, right_wheels, WHEEL_DIAMETER, TRACK_WIDTH, 
 double l_encoder = 0;
 double r_encoder = 0;
 
+
+
 Waypoint current_pos = Waypoint();
 
+double encoder_to_distance(double encoder_value) {
+    double radians = encoder_value * DEG_RAD;
+    return radians * WHEEL_RAD;
+}
 
 void update_position(){
     double current_l_encoder = left_wheels.position(vex::rotationUnits::deg);
-    double current_r_encoder = left_wheels.position(vex::rotationUnits::deg);
+    double current_r_encoder = right_wheels.position(vex::rotationUnits::deg);
 
 
-    double delta_left = current_l_encoder - l_encoder;
-    double delta_right = current_r_encoder - r_encoder;
-    double delta_s = 
+    double delta_left = encoder_to_distance(current_l_encoder - l_encoder);
+    double delta_right = encoder_to_distance(current_r_encoder - r_encoder);
+    double delta_s = (delta_left + delta_right)/2;
+
     l_encoder = current_l_encoder;
     r_encoder = current_r_encoder;
+
+
+    double delta_theta = RAD_DEG * (delta_left - delta_right)/TRACK_WIDTH;
+
+
+    if(delta_theta == 0){
+        current_pos.x += delta_left * sin (current_pos.theta);
+        current_pos.y += delta_left * cos (current_pos.theta);
+
+    } else {
+        double chord_side = 2 * ((delta_left / delta_theta) + TRACK_WIDTH/2) * sin(delta_theta / 2);
+
+        // Calculate the X and Y displacements due to the arc motion
+        double delta_y = chord_side * cos(current_pos.theta + (delta_theta / 2));
+        double delta_x = chord_side * sin(current_pos.theta + (delta_theta / 2));
+
+        // Update the position
+        current_pos.x += delta_x;
+        current_pos.y += delta_y;
+        current_pos.theta += delta_theta;
+    }
+
+    Brain.Screen.printAt(100,20, "X: %f", current_pos.x);
+    Brain.Screen.printAt(100,40, "Y: %f", current_pos.y);
+    Brain.Screen.printAt(100,60, "Direction: %f",current_pos.theta);
+
 }
 
+
+void move_to(double x, double y){
+    
+}
+
+
+void reset_encoders(){
+    l_encoder = 0;
+    r_encoder = 0;
+    left_wheels.setPosition(0, vex::rotationUnits::deg);
+    left_wheels.setPosition(0, vex::rotationUnits::deg);
+}
 
 
 void autonomous(){
